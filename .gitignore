@@ -1,0 +1,125 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Sistema operativo y archivos temporales
+# ──────────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# ──────────────────────────────────────────────────────────────────────────────
+# IDEs y editores
+# ──────────────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Python / FastAPI
+# ──────────────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.pyre/
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+envs/
+backend/venv/
+backend/.venv/
+
+# Variables de entorno y secretos
+.env
+.env.*
+!**/.env.example
+*.pem
+*.key
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Base de datos, logs y archivos subidos por usuarios
+# ──────────────────────────────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+backend/*.db
+backend/*.sqlite*
+*.log
+logs/
+backend/logs/
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Flutter / Dart
+# ──────────────────────────────────────────────────────────────────────────────
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+.packages
+build/
+**/build/
+.flutter-plugins-dependencies
+
+# Documentación generada por Dart
+**/doc/api/
+
+# Archivos de compilación y símbolos
+*.class
+app.*.symbols
+app.*.map.json
+
+# Flutter Android
+**/android/.gradle/
+**/android/local.properties
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+**/android/captures/
+**/android/key.properties
+
+# Flutter iOS / macOS
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/ephemeral/
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Runner/GeneratedPluginRegistrant.*
+**/macos/Pods/
+**/macos/Flutter/ephemeral/
+**/macos/Flutter/GeneratedPluginRegistrant.*
+
+# Flutter Linux / Windows
+**/linux/flutter/ephemeral/
+**/windows/flutter/ephemeral/
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Node.js (por si se agrega tooling o API auxiliar en el futuro)
+# ──────────────────────────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Cobertura de directorios vacíos sin ignorar su marcador
+# ──────────────────────────────────────────────────────────────────────────────
+!.gitkeep

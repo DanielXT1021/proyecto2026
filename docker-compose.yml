@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./backend
+    container_name: vivero_ia_api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - uploads_data:/app/uploads
+    environment:
+      - DATABASE_URL=sqlite:///./vivero_ia.db
+      - UPLOADS_DIR=uploads
+    restart: unless-stopped
+
+volumes:
+  uploads_data:
