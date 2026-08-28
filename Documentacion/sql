@@ -1,0 +1,162 @@
+
+
+
+
+/*
+   Tabla de usuarios
+
+   
+   Explicacion de rles:
+    
+    admin:
+        -
+        -
+    operador:
+        -
+        -
+    researcher
+        -
+        -
+*/
+
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role ENUM('ADMIN', 'OPERATOR', 'RESEARCHER') DEFAULT 'OPERATOR',
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+
+
+CREATE TABLE greenhouses (
+    greenhouse_id INT AUTO_INCREMENT PRIMARY KEY,
+    admin_user_id INT NOT NULL,
+    name VARCHAR(120) NOT NULL,
+    location_description VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_greenhouses_user FOREIGN KEY (admin_user_id) 
+        REFERENCES users(user_id) ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+
+CREATE TABLE crop_sectors (
+    sector_id INT AUTO_INCREMENT PRIMARY KEY,
+    greenhouse_id INT NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    environment_type ENUM('ENCLOSED_GREENHOUSE', 'SHADE_NET', 'OPEN_AIR') DEFAULT 'ENCLOSED_GREENHOUSE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_sectors_greenhouse FOREIGN KEY (greenhouse_id) 
+        REFERENCES greenhouses(greenhouse_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+
+CREATE TABLE species (
+    species_id INT AUTO_INCREMENT PRIMARY KEY,
+    common_name VARCHAR(100) NOT NULL,       
+    scientific_name VARCHAR(150) NOT NULL,   
+    morphology_type ENUM('WOODY', 'SPIKED', 'BROADLEAF', 'SHRUB') NOT NULL,
+    base_irrigation_frequency_days INT NOT NULL DEFAULT 2,
+    base_water_volume_ml DECIMAL(8,2) DEFAULT 250.00,
+    optimal_light_hours INT DEFAULT 6,
+    botanical_description TEXT
+) ENGINE=InnoDB;
+
+CREATE TABLE plants (
+    plant_id INT AUTO_INCREMENT PRIMARY KEY,
+    sector_id INT NOT NULL,
+    species_id INT NOT NULL,
+    tag_code VARCHAR(50) NOT NULL UNIQUE,    
+    planting_date DATE NOT NULL,
+    current_status ENUM('HEALTHY', 'MILD_WATER_STRESS', 'SEVERE_WATER_STRESS', 'UNDER_TREATMENT', 'HARVESTED', 'DETERIORATED') DEFAULT 'HEALTHY',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_plants_sector FOREIGN KEY (sector_id) 
+        REFERENCES crop_sectors(sector_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_plants_species FOREIGN KEY (species_id) 
+        REFERENCES species(species_id) ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+CREATE TABLE iot_devices (
+    device_id INT AUTO_INCREMENT PRIMARY KEY,
+    sector_id INT NULL,                     
+    hardware_identifier VARCHAR(100) NOT NULL UNIQUE, 
+    camera_model VARCHAR(100) DEFAULT 'Raspberry Pi Camera Module v2/v3',
+    api_token VARCHAR(255) NOT NULL,        
+    status ENUM('ACTIVE', 'INACTIVE', 'MAINTENANCE') DEFAULT 'ACTIVE',
+    last_ping TIMESTAMP NULL,
+    CONSTRAINT fk_devices_sector FOREIGN KEY (sector_id) 
+        REFERENCES crop_sectors(sector_id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE image_captures (
+    capture_id INT AUTO_INCREMENT PRIMARY KEY,
+    plant_id INT NOT NULL,
+    device_id INT NULL,                     
+    uploaded_by_user_id INT NULL,          
+    acquisition_source ENUM('RASPBERRY_PI_STATIC', 'SMARTPHONE_MANUAL') NOT NULL,
+    storage_path VARCHAR(300) NOT NULL,      
+    resolution_px VARCHAR(20),             
+    file_size_bytes BIGINT,
+    captured_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_captures_plant FOREIGN KEY (plant_id) 
+        REFERENCES plants(plant_id) ON DELETE CASCADE,
+    CONSTRAINT fk_captures_device FOREIGN KEY (device_id) 
+        REFERENCES iot_devices(device_id) ON DELETE SET NULL,
+    CONSTRAINT fk_captures_user FOREIGN KEY (uploaded_by_user_id) 
+        REFERENCES users(user_id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE ml_analyses (
+    analysis_id INT AUTO_INCREMENT PRIMARY KEY,
+    capture_id INT NOT NULL,
+    model_version VARCHAR(50) NOT NULL,    
+    estimated_leaf_count INT DEFAULT NULL,
+    phenological_stage ENUM('GERMINATION', 'VEGETATIVE_GROWTH', 'FLOWERING', 'MATURITY') DEFAULT 'VEGETATIVE_GROWTH',
+    water_stress_index DECIMAL(5,2) NOT NULL, 
+    signs_of_deterioration BOOLEAN DEFAULT FALSE,
+    green_percentage DECIMAL(5,2) NULL,    
+    yellow_percentage DECIMAL(5,2) NULL,    
+    model_confidence DECIMAL(5,4) NOT NULL,  
+    processing_time_ms INT,
+    segmented_image_path VARCHAR(300) NULL, 
+    analyzed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_analyses_capture FOREIGN KEY (capture_id) 
+        REFERENCES image_captures(capture_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE irrigation_recommendations (
+    recommendation_id INT AUTO_INCREMENT PRIMARY KEY,
+    analysis_id INT NOT NULL,
+    plant_id INT NOT NULL,
+    requires_urgent_watering BOOLEAN DEFAULT FALSE,
+    suggested_volume_ml DECIMAL(8,2) NOT NULL,
+    optimal_time_slot ENUM('EARLY_MORNING', 'LATE_EVENING') NOT NULL,
+    recommendation_reason TEXT NOT NULL,   
+    status ENUM('PENDING', 'APPLIED', 'DISMISSED') DEFAULT 'PENDING',
+    generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_recommendations_analysis FOREIGN KEY (analysis_id) 
+        REFERENCES ml_analyses(analysis_id) ON DELETE CASCADE,
+    CONSTRAINT fk_recommendations_plant FOREIGN KEY (plant_id) 
+        REFERENCES plants(plant_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE irrigation_logs (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
+    plant_id INT NOT NULL,
+    user_id INT NOT NULL,
+    recommendation_id INT NULL,             
+    applied_volume_ml DECIMAL(8,2) NOT NULL,
+    notes TEXT,
+    watered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_logs_plant FOREIGN KEY (plant_id) 
+        REFERENCES plants(plant_id) ON DELETE CASCADE,
+    CONSTRAINT fk_logs_user FOREIGN KEY (user_id) 
+        REFERENCES users(user_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_logs_recommendation FOREIGN KEY (recommendation_id) 
+        REFERENCES irrigation_recommendations(recommendation_id) ON DELETE SET NULL
+) ENGINE=InnoDB;
