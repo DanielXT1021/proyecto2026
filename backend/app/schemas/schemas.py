@@ -5,8 +5,6 @@ from pydantic import BaseModel, Field
 from app.models.models import Species
 
 
-# ── Plant schemas ──────────────────────────────────────────────────────────────
-
 class PlantCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     species: Species
@@ -87,8 +85,6 @@ class PlantSummaryOut(BaseModel):
 
     model_config = {"from_attributes": True}
 
-
-# ── Analysis response ──────────────────────────────────────────────────────────
 
 class AnalysisResponse(BaseModel):
     plant_id: int

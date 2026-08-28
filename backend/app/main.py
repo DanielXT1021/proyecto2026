@@ -19,7 +19,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="ViveroIA API",
+    title="plantfyApi",
     description="Sistema inteligente de análisis fenológico y fitosanitario mediante visión computacional",
     version="1.0.0",
     lifespan=lifespan,
@@ -39,7 +39,7 @@ app.include_router(api_router, prefix="/api/v1")
 
 @app.get("/")
 def root():
-    return {"message": "ViveroIA API", "version": "1.0.0", "docs": "/docs"}
+    return {"message": "PlantfyApi", "version": "1.0.0", "docs": "/docs"}
 
 
 @app.get("/health")

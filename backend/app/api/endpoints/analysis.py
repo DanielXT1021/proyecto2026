@@ -1,6 +1,9 @@
+import os
+import aiofiles
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.models.models import Plant, PlantImage, AnalysisResult, WateringRecommendation
 from app.schemas.schemas import AnalysisResultOut, AnalysisResponse
@@ -24,15 +27,21 @@ async def analyze_image(
 
     filename, image_bytes = await save_upload(file)
 
-    # Persistir imagen
     plant_image = PlantImage(plant_id=plant_id, image_filename=filename, source=source)
     db.add(plant_image)
     db.flush()
 
-    # Análisis de IA con OpenCV
     result = analyze_plant_image(image_bytes, species=plant.species.value)
 
-    # Persistir resultado de análisis
+    # Guardar imagen con overlay de segmentación YOLO-seg si existe
+    if result.annotated_image_bytes and settings.SAVE_SEGMENTATION_OVERLAY:
+        try:
+            seg_path = os.path.join(settings.UPLOADS_DIR, f"seg_{filename}")
+            async with aiofiles.open(seg_path, "wb") as f:
+                await f.write(result.annotated_image_bytes)
+        except Exception:
+            pass
+
     analysis_row = AnalysisResult(
         image_id=plant_image.id,
         health_score=result.health_score,
@@ -49,7 +58,6 @@ async def analyze_image(
     db.add(analysis_row)
     db.flush()
 
-    # Generar y persistir recomendación de riego
     rec = generate_recommendation(plant.species.value, result)
     rec_row = WateringRecommendation(
         analysis_id=analysis_row.id,

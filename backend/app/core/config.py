@@ -10,6 +10,12 @@ class Settings(BaseSettings):
     API_PORT: int = 8000
     DEBUG: bool = True
 
+    # Configuración de modelo YOLO-seg
+    YOLO_SEG_MODEL_PATH: str = "yolov8n-seg.pt"
+    YOLO_CONF_THRESHOLD: float = 0.25
+    YOLO_DEVICE: str = "cpu"
+    SAVE_SEGMENTATION_OVERLAY: bool = True
+
     model_config = {"env_file": ".env", "case_sensitive": True}
 
 
