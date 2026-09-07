@@ -1,2 +1,2 @@
-﻿# Nombre ficticio: AgH2infoTech
+﻿# AgH2infoTech
 
